@@ -5,8 +5,10 @@ disqus: hackmd
 
 Fluidigm Data Curation
 ===
-Fluidigm es una plataforma que....chipseq 96 muestras x 96 SNPs...(cite David TFM). Este es un pipeline bioinformatico para extraer raw data de la plataforma fluidigm y biomark. Curation del formato y calculación de tasas de error de genotipado y generación de genotipos consenso. 
+Fluidigm is a.... Dont know how to explin what it is....
 
+This is a bioinformatics pipeline to extract raw data obtained from  96 samples x 96 SNPs Fluidigm / Biomark chipseq assays and format curation to construct consensus genotypes and calculate genotyping error rates. 
+ 
 ## Objective
 Execute a data extraction and curation pipeline for chipseq data (cite Objective of proyecto LIFE) monitoreo no-invasivo de populaciones de lince iberico etc etc.
 
@@ -93,7 +95,8 @@ You can scroll through each SNP to review discriminant analysis plots (clusters)
 
 
 #### Normalize data and plot views. 
-We can adjust de data normalization method using the window on the left "Analysis settings". 
+We can adjust the data normalization method using the window on the left "Analysis settings". 
+
 ![](https://i.imgur.com/PSfdggR.png)
 
 
@@ -130,11 +133,11 @@ Plot view - showing invalids
 
 Using this method the NTC cluster shows more relatedness within the global of NTC samples. Furthermore, the allele clusters are also better defined. 
 
-In both methods our run showed a lot of invalid chambers (meaning of invalid explained bellow). This invalids "corresponden" with a group of failed assays (SNPs - see the picture bellow)
+In both methods our run showed a lot of invalid chambers (meaning of invalid explained bellow). These invalids are related with a group of failed assays (SNPs - see the picture bellow)
 
 ![](https://i.imgur.com/GzdlXqv.png)
 
-The orange vertical lines are the SNPs amplification falied assays. 
+The orange vertical lines are the SNPs amplification failed. 
     
 
 
@@ -151,11 +154,12 @@ Rather than opening directly, open a blank excel sheet and go to Data>Get Extern
 
 
 ## Step 4. Convert *.csv to GENEPOP format
-This can easily be performed manually following the example in /github/data/*.csv
+
+Rscript
 
 ¡Important! 
 
-Allele correspondeces from A,G,T,C to GENEPOP format 0,1,2,3,4. No Call and Invalid Call are both treated as missing (000)
+Allele correspondeces from A,G,T,C to GENEPOP format 0,1,2,3,4. No Call and Invalid Call are both treated as missing (000).
 
 
 | A   | G   | C   | T   | Missing | 
@@ -163,20 +167,60 @@ Allele correspondeces from A,G,T,C to GENEPOP format 0,1,2,3,4. No Call and Inva
 | 001   | 002   | 003   | 004   | 000       | 
 
 
-### Step 5. Install GIMLET software
-download the normal (non beta version) of gimlet
+## Step 5. Install GIMLET software
+Download the normal (non beta version) of gimlet
 unzip with WINZIP
-choose a directory (change to another directory)
+Choose a directory (change to another directory)
 click the little computer icon (there is no other button, it's a little weird)
 
-Generating consensus genotypes is the process that allows researchers to determine the genotype of a SNP locus from non invasive, low quality and replicated samples, for instance scats, hair, ... (Cite). The procces requires a minimun of two reads for a single individual to call a heterozygote and a minimum of three reads to make a homozygous or homozygous alternete SNP call (decission-based). 
+## Step 6. Construct consensus genotypes - Gimlet. 
+Generating consensus genotypes is the process that allows researchers to determine the genotype of a marker locus (in our case SNPs) from non invasive, low quality and replicated samples, for instance scats, hair, ... (Cite).  
  
-## Step 3. Calculating genotyping error in Gimlet
-<luis></luis>
+ Gimlet provide two different methods to create consensus genotypes from a set of PCR reactions for each sample; threshold method (our case) and probability based method (not used).
+ 
+ ### Threshold based method. 
+
+This was the method used in our run. Defineed as a "decission-based" method. It is based on the number of apparition of each allele. The genotype of each locus is constructed based on the most likely genotype for the x number of replicates.The user can adjust the threshold (See figure). This threshold number is the number of times that an allele must be observed for each locus to be retained and taking it into account.
+
+- Threshold one: just one observation of each allele to be retained
+- Threshold two: at least two observations for each allele in different replicates to be retained.  
+
+At each locus, when no allele can be retained (i.e. all allele scores are below the threshold) or when more than two alleles are retained, the genotype is considered missing data.  
+
+   ![](https://i.imgur.com/hKoD64y.png)
+ 
+
+**Threshold Based Method Protocol**
+
+Gimlet requires a GenePop format input file (Step 4). Once you have created the input file open Gimlet and click: Calculator> Consensus genotypes > Input file. Select your file and now you can adjust the "Determination of the consensus genotypes" parameters. Make sure that you select the "Threshold method". To calculate the consensus genotypes with a threshold of one, just use the default parameters. Then click on "Output file and Go!" and save the output file in your chosen folder. To calculute the consensus with a threshold greater than one set it in "Consensus threshold or Probability ratio".
+The output file is also a genepop format file with a list of the consensus genotypes for each sample (See the example in GitHub?).
+
+For our run we had two different sets of samples. A group of them replicatd (2-4 replicates), suposed to have lower quality than the other group that were not replicated in the assay. In this scenario, with the no replicated we used the threshold one method, in view of the fact that Gimlet would type all the locus of this samples as missing if we had used threshold two or greater. 
+
+On the other hand, for replicated  samples we choose threshold two for more accuracy in the construction of the consensus of this poor quality samples. 
+ 
+
+
+ 
+## Step 7. Estimate genotyping error rates - Gimlet.
+
+We also used Gimlet to estimate a set of genotyping errors as:
+
+- Allelic dropout (ADO): when a heterozygote (from the consensus genotype) is typed as a homozygote (from repeated genotypes).
+- False allele (FA): when a homozygote (from the consensus genotype) is typed as a heterozygote (from repeated genotypes).
+- Five types of errors (true genotype in the first line; erroneous genotype in the bottom line):
+
+  ![](https://i.imgur.com/3xFgMIA.png)
+
+**Protocol**
+
+Open Gimlet. Click on Calculator > Estimate error rates > Input file. Select the same GenePop format file you used to construct genotypes with all the replicated samples. Select the "Construct consensus genotypes" method to estimate the error rates without a reference genotype for each sample. 
+
+The output file is a extended (*.txt) file with info about all the error types mentioned above for each locus and samples. (See the example in GitHub?)
 
 ## Summary of results
-    ###comparing thresh 1 and thresh 2
-    ###genotyping error
+    ### Using this pipeline we were able to create a set of 62 consensus genotypes from a run of 96 samples with a missing alleles mean of  ≈13 
+    ### For the replicated samples we got better results of allele dropout while using threshold two consensus genotypes than treshold one (0.2557 to 0.0355, respectivetly)
     ### Godoy unexpected matches
 
 ## Next Steps

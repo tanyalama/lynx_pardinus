@@ -5,12 +5,13 @@ disqus: hackmd
 
 Fluidigm Data Curation
 ===
-Fluidigm is a.... Dont know how to explin what it is....
-
-This is a bioinformatics pipeline to extract raw data obtained from  96 samples x 96 SNPs Fluidigm / Biomark chipseq assays and format curation to construct consensus genotypes and calculate genotyping error rates. 
+This is a bioinformatics pipeline used to extract and curate raw data obtained from the JUNO Fluidigm platform for downstream analyses.
  
-## Objective
-Execute a data extraction and curation pipeline for chipseq data (cite Objective of proyecto LIFE) monitoreo no-invasivo de populaciones de lince iberico etc etc.
+## Objectives
+(1) Extract, curate, and prepare data in GENEPOP format 
+(2) Construct consensus genotypes 
+(3) Calculate genotyping error rates
+(4) Analyze paternity and relatedness among all new and existing individuals in the database
 
 ## Table of Contents
 [TOC]
@@ -21,22 +22,17 @@ Execute a data extraction and curation pipeline for chipseq data (cite Objective
 Molecular Ecology Notes. 2(3): 377-379
 3. [RStudio version 1.4.1717](https://www.rstudio.com/) 
 
-## References
-paper
-paper
-paper
-## Step 0. Sample and Assay Setup.
-Previusly of running the assay you can design a setup and annotate your sample, tag and allele names using a provided Microsoft Excel in the Biomark™ System, Biomark™ HD System, or EP1™ system computer. 
+## Step 1. Sample and Assay Setup
+Prior to running the assay you must design your sample and primer layouts, and prepare the necessary inputs using Microsoft Excel. See our templates in project_iberian_lynx_fluidigm/templates_iberian_lynx_fluidigm.
+
 ### Sample Setup
 
-Follow the instructions of the guide: 
-
+### Follow best practices in the following guides: 
 1. On your Biomark™ System, Biomark™ HD System, or EP1™ system computer, go to C:\Program Files\Fluidigm\BiomarkGenotypingAnalysis\ApplicationData\FileFormts.
 
-2.  Open the file labeled “SamplePlateDefinitionForMoreS”.
- 
+2. Open the file labeled “SamplePlateDefinitionForMoreS”.
  - You may have to enable Active X. To do so:
- Click on the Options tab. Select “Enable this content” from the Microsoft Office Security Options dialog box.
+Click on the Options tab. Select “Enable this content” from the Microsoft Office Security Options dialog box.
 
 3. Edit the Microsoft Excel template to match your experiment.
 
@@ -62,7 +58,7 @@ In Data item you can select
  - Sample ID 
  - Sample Type. 3 possibilities: "Unknown" "NTC" "Control"
 
-Also you need to provide a proper "sampling Map" *.dsp (dispense mapping file) In our particular case for a Juno 96.96 genotyping IFC run, we used "Juno96x96-Sample-SBS96.dsp" map file. 
+You need to provide a proper "sampling Map" *.dsp (dispense mapping file). In our case for a Juno 96.96 genotyping IFC run, we used "Juno96x96-Sample-SBS96.dsp" map file. 
 
 ### Assay Setup 
 
@@ -72,8 +68,7 @@ Also you need to provide a proper "sampling Map" *.dsp (dispense mapping file) I
 ![](https://i.imgur.com/frFi2HX.png)
 
 3. Edit the Microsoft Excel file to match your experiment.
-4. Click Create Plate CSV File button.
-A new tab labeled “CSV file” will be added to the Excel file.
+4. Click Create Plate CSV File button. A new tab labeled “CSV file” will be added to the Excel file.
 5. Open the new tab and double check your annotations.
 6. Click Save to a CSV file button to save the file and select a convenient location for future retrieval.
 
@@ -83,8 +78,6 @@ Once you have created the assay setup you can import it to the SNP Genotyping So
 Data is extracted directly from the desktop computer in LEM3. <working directory is /pcr. In particular we need input files *.bml < describe contents of PCR folder> 
 
 ## Step 2. SNP Genotype data analysis. 
-
-
 (see SNP Genotyping User Guide (68000098 Rev.18) in the github repository for instructions)
 Launch Biomark & EP1 Software and open the run results using File>Open>*/ChipRun.bml
 
@@ -93,18 +86,13 @@ Launch Biomark & EP1 Software and open the run results using File>Open>*/ChipRun
 
 You can scroll through each SNP to review discriminant analysis plots (clusters) for all heterozygous, homozygous, homozygous alternate, NO CALL and INVALID CALL calls at each sample x snp. 
 
-
 #### Normalize data and plot views. 
 We can adjust the data normalization method using the window on the left "Analysis settings". 
 
 ![](https://i.imgur.com/PSfdggR.png)
 
-
-
-* **SNPtype normalization**: is the default option for chip runs using Fluidigm SNP
-Type Assays. This option determines a global NTC setting from the NTCs
-across the chip run. In cases where there are no NTCs defined, this option
-will estimate the location of the NTC.
+**SNPtype normalization**: is the default option for chip runs using Fluidigm SNP
+Type Assays. This option determines a global NTC setting from the NTCs across the chip run. In cases where there are no NTCs defined, this option will estimate the location of the NTC.
 
 
 Plot view - hiding invalids 
@@ -116,12 +104,8 @@ Plot view - showing invalids
 
 ![](https://i.imgur.com/m0SDstY.png)
 
-* **NTC normalization** : This option
-makes viewing assays on the plotted graphs easier, because it normalizes the
-position of the no template control cells. The no template control cells are
-aligned to the x = 0.1 and y = 0.1 location on the plotted graph. It also
-normalizes the intensities of the assays so that they are roughly plotted in a
-square.
+**NTC normalization**: 
+This option makes viewing assays on the plotted graphs easier, because it normalizes the position of the no template control cells. The no template control cells are aligned to the x = 0.1 and y = 0.1 location on the plotted graph. It also normalizes the intensities of the assays so that they are roughly plotted in a square.
 
 Plot view - Hiding invalids
 
@@ -139,9 +123,7 @@ In both methods our run showed a lot of invalid chambers (meaning of invalid exp
 
 The orange vertical lines are the SNPs amplification failed. 
     
-
-
-## Step 3. Export raw data output from Fluidigm SNP genotyping software.
+## Step 3. Export raw data output from Fluidigm SNP genotyping software
 Using File>Export we can export data from Fluidigm in one of four formats: 
 * Summary table view 
 * Detailed table view -- **this is the type that we want**
@@ -152,10 +134,9 @@ Export the raw data in *.csv and save as "All Files".
 
 Rather than opening directly, open a blank excel sheet and go to Data>Get External Data> from Text to load the fluidigm data into excel with columns delimited by ";". Start import on line 16.
 
-
 ## Step 4. Convert *.csv to GENEPOP format
 
-Rscript
+Tanya created a custom rscript called csv_to_genepop_format.Rmd for this. See it in the github
 
 ¡Important! 
 
@@ -176,7 +157,7 @@ click the little computer icon (there is no other button, it's a little weird)
 ## Step 6. Construct consensus genotypes - Gimlet. 
 Generating consensus genotypes is the process that allows researchers to determine the genotype of a marker locus (in our case SNPs) from non invasive, low quality and replicated samples, for instance scats, hair, ... (Cite).  
  
- Gimlet provide two different methods to create consensus genotypes from a set of PCR reactions for each sample; threshold method (our case) and probability based method (not used).
+Gimlet provide two different methods to create consensus genotypes from a set of PCR reactions for each sample; threshold method (our case) and probability based method (not used).
  
  ### Threshold based method. 
 
@@ -189,7 +170,6 @@ At each locus, when no allele can be retained (i.e. all allele scores are below 
 
    ![](https://i.imgur.com/hKoD64y.png)
  
-
 **Threshold Based Method Protocol**
 
 Gimlet requires a GenePop format input file (Step 4). Once you have created the input file open Gimlet and click: Calculator> Consensus genotypes > Input file. Select your file and now you can adjust the "Determination of the consensus genotypes" parameters. Make sure that you select the "Threshold method". To calculate the consensus genotypes with a threshold of one, just use the default parameters. Then click on "Output file and Go!" and save the output file in your chosen folder. To calculute the consensus with a threshold greater than one set it in "Consensus threshold or Probability ratio".
@@ -198,9 +178,6 @@ The output file is also a genepop format file with a list of the consensus genot
 For our run we had two different sets of samples. A group of them replicatd (2-4 replicates), suposed to have lower quality than the other group that were not replicated in the assay. In this scenario, with the no replicated we used the threshold one method, in view of the fact that Gimlet would type all the locus of this samples as missing if we had used threshold two or greater. 
 
 On the other hand, for replicated  samples we choose threshold two for more accuracy in the construction of the consensus of this poor quality samples. 
- 
-
-
  
 ## Step 7. Estimate genotyping error rates - Gimlet.
 
@@ -224,9 +201,11 @@ The output file is a extended (*.txt) file with info about all the error types m
     ### Godoy unexpected matches
 
 ## Next Steps
-likelihood-based match pairing (Tanya)
+likelihood-based match pairing (Tanya) in COLONY
 Joining 22.06.2021 data with David's data from  2019.
 
+1. JG run cervus
+2. Colony? not sure if JG wants us to run this
 
 
 

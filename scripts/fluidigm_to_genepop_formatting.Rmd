@@ -1,0 +1,519 @@
+---
+title: "fluidigm_to_genepop_formatting.Rmd"
+author: "Tanya Lama"
+date: "7/19/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+#Part 1: Fluidigm genotyping Lynx pardinus samples from Portugal, June 2021
+```{r}
+#Load dependencies
+library(readr)
+library(dplyr)
+
+#First, save the genotype call map and detailed table from Fluidigm in *.csv format. See output_fluidigm_callmap_lince_portugal_jun_2021.csv as an example of how the callmap should look. Note that we have removed the first ~30 lines which include the run details, retaining only the "final" calls for each locus.
+
+#Set working directory
+dir1 <- file.path("/Volumes/GoogleDrive/My Drive/project_iberian_lynx/project_iberian_lynx_fluidigm")
+#setwd(dir1)
+
+#Load inputs
+input_output <- "output_fluidigm_callmap_lince_portugal_jun_2021_formatted.csv" #this should be the name of your callmap
+input <- read.csv("/Volumes/GoogleDrive/My Drive/project_iberian_lynx/project_iberian_lynx_fluidigm/data_project_iberian_lynx_fluidigm/iberian_lynx_fluidigm_portugal_jun_2021/output_fluidigm_callmap_lince_portugal_jun_2021_formatted.csv") 
+#Save the raw input as a separate object, so it's readily available if we make any mistakes
+inputraw<- input
+#Name the first two columns "sample_order" and "sample_id"
+colnames(input)[1]<- "sample_order"
+colnames(input)[2]<- "sample_id"
+
+#Import the SNP database in order to retrieve the SNP names from the scaffolds and positions. Note that David and Dani often used the positions as the SNP names. We have done the same here, although I think it makes interpretation rather difficult.
+SNP_database <- read.csv2("/Volumes/GoogleDrive/My Drive/project_iberian_lynx/project_iberian_lynx_fluidigm/data_project_iberian_lynx_fluidigm/snps_lista_suprema.csv")[,c(1,2,4)]
+SNP_database
+SNP_database$SCAFF_POSIT = paste(SNP_database$SCAFFOLD,SNP_database$POSITION,sep="_") 
+
+#Retrieve SNP names when necessary, otherwise keep the original names (i.e. for the sex markers SRY and ZFR).
+input_SNP_names <- vector('character')
+for (i in colnames(input)) {
+  if (startsWith(i,"lp23.")==F) {
+    input_SNP_names <- c(input_SNP_names,i)
+  } else {
+    input_SNP_names <- c(input_SNP_names,unlist(SNP_database[which(SNP_database$SCAFF_POSIT==i),1],use.names=F))
+  }
+}
+#Review the new names
+input_SNP_names
+#Assign them to our input object
+colnames(input) <- input_SNP_names
+
+#Obtain a list of all strings in the dataframe that are equivalent to missing data (i.e. NoCall Invalid or NTC which are equivalent to "0:0")
+strings_to_replace <- grep(":",unique(unlist(input[,-c(1:2)])),value=T,invert=T)
+#Replace those strings with the threedigit genepop code for missing data (000000). If you are unsure what the genepop codes are for each of our alleles, see readme_snp_letters_to_numbers.txt. In brief, the assignments follow: 
+#A=001
+#G=002
+#C=003
+#T=004
+
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "000000", x)
+                                }
+                              )
+                        )
+  }
+  
+#A:A
+strings_to_replace <- c("A:A")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "001001", x)
+                                }
+                              )
+                        )
+  }
+#C:C
+strings_to_replace <- c("C:C")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "003003", x)
+                                }
+                              )
+                        )
+  }
+
+#G:G
+strings_to_replace <- c("G:G")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "002002", x)
+                                }
+                              )
+                        )
+  }
+
+#T:T
+strings_to_replace <- c("T:T")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "004004", x)
+                                }
+                              )
+                        )
+  }  
+
+#T:C
+strings_to_replace <- c("T:C")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "004003", x)
+                                }
+                              )
+                        )
+  } 
+
+#A:G
+strings_to_replace <- c("A:G")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "001002", x)
+                                }
+                              )
+                        )
+  } 
+
+#C:G
+strings_to_replace <- c("C:G")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "003002", x)
+                                }
+                              )
+                        )
+  } 
+  
+#A:T
+strings_to_replace <- c("A:T")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "001004", x)
+                                }
+                              )
+                        )
+  } 
+
+#A:C
+strings_to_replace <- c("A:C")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "001003", x)
+                                }
+                              )
+                        )
+  } 
+  
+#T:G
+strings_to_replace <- c("T:G")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "004002", x)
+                                }
+                              )
+                        )
+  } 
+
+#Check that you're not missing any weird allele combinations
+unique(input[,3:98]) #I don't see any other *:* combinations, so it looks like we've got it all covered
+
+#More genepop formatting. We need a comma after each sample_id
+comma<- as.data.frame(input[1:96,1]) 
+comma[,1]<- ","
+colnames(comma)<- ""
+
+names<- as.data.frame(input[,2])
+
+#Drop SRY and ZFR from columns 97 and 98. We won't include them for this step of our analysis.
+genotypes<- as.data.frame(input[,3:96]) 
+
+#Bind our sample_ids, the comma, and our genotypes (except for SRY and ZFR in a final object
+input<- cbind(names, comma, genotypes)
+
+#Write a *.txt file with our final data in genepop format. 
+write.table(input, file ="/Volumes/GoogleDrive/My Drive/project_iberian_lynx/project_iberian_lynx_fluidigm/data_project_iberian_lynx_fluidigm/iberian_lynx_fluidigm_portugal_jun_2021/genepop_lince_portugal_jun_2021_raw.txt", row.names=F, col.names = T)
+
+#Post-processing: 
+#1. Open a new sheet in Excel. Data> Get Data> From File> Text
+#2. Find and Replace: remove all ", remove X* from the first line of marker names
+#3. Sort by sample_id, grouping all of the replicates together and separating by an empty line with "Pop"
+#4. Save as *.xlxs, *.txt and *.prn.
+#5. See genepop_lince_portugal_jun_2021_formatted.txt for an example of the desired format
+
+#Next steps: 
+#1. This input is processed by GIMLET for genotype consensus. Consensus genotypes are then analyzed using CERVUS to assign probability of identification (is this sample a recapture or a new unknown individual? and paternity). See our HACKMD for details on these downstream analyses. 
+```
+#Part 2: David's data Placa 01
+We had to run this a second time with David's data from 2019. Then, the two data sets were confirmed to identify coincident individuals (recaptures) versus new individuals.
+```{r}
+#Set working directory
+#dir1 <- file.path("/Volumes/GoogleDrive/My Drive/project_iberian_lynx/running_scripts_dani_david/")
+#setwd(dir1)
+
+#Load inputs
+input_output <- "output_fluidigm_placa_01_callmap_lince_david_formatted.csv"
+input <- read.csv("/Volumes/GoogleDrive/My Drive/project_iberian_lynx/project_iberian_lynx_fluidigm/data_project_iberian_lynx_fluidigm/iberian_lynx_fluidigm_2019/placa_01_fluidigm_2019/output_fluidigm_placa_01_callmap_lince_david_formatted.csv") 
+
+#Save the raw input as inputraw for safekeeping
+inputraw<- input
+
+#Name the first two columns "sample_order" and "sample_id"
+colnames(input)[1]<- "sample_order"
+colnames(input)[2]<- "sample_id"
+
+#Import the SNP database to retrieve the SNP names from the scaffolds and positions
+SNP_database <- read.csv2("/Volumes/GoogleDrive/My Drive/project_iberian_lynx/project_iberian_lynx_fluidigm/data_project_iberian_lynx_fluidigm/snps_lista_suprema.csv")[,c(1,2,4)]
+SNP_database
+SNP_database$SCAFF_POSIT = paste(SNP_database$SCAFFOLD,SNP_database$POSITION,sep="_")
+
+#Retrieve SNP names when necessary, otherwise retaining the original name (i.e. for SRY and ZFR)
+input_SNP_names <- vector('character')
+for (i in colnames(input)) {
+  if (startsWith(i,"lp23.")==F) {
+    input_SNP_names <- c(input_SNP_names,i)
+  } else {
+    input_SNP_names <- c(input_SNP_names,unlist(SNP_database[which(SNP_database$SCAFF_POSIT==i),1],use.names=F))
+  }
+}
+
+#Check the names
+input_SNP_names
+#If OK, assign the names to our object
+colnames(input) <- input_SNP_names
+
+#Obtain a list of all strings in the dataframe that are equivalent to missing data (i.e. equivalent to "0:0")
+strings_to_replace <- grep(":",unique(unlist(input[,-c(1:2)])),value=T,invert=T)
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "000000", x)
+                                }
+                              )
+                        )
+  }
+  
+#A:A
+strings_to_replace <- c("A:A")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "001001", x)
+                                }
+                              )
+                        )
+  }
+#C:C
+strings_to_replace <- c("C:C")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "003003", x)
+                                }
+                              )
+                        )
+  }
+
+#G:G
+strings_to_replace <- c("G:G")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "002002", x)
+                                }
+                              )
+                        )
+  }
+
+#T:T
+strings_to_replace <- c("T:T")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "004004", x)
+                                }
+                              )
+                        )
+  }  
+
+#T:C
+strings_to_replace <- c("T:C")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "004003", x)
+                                }
+                              )
+                        )
+  } 
+
+#A:G
+strings_to_replace <- c("A:G")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "001002", x)
+                                }
+                              )
+                        )
+  } 
+
+#C:G
+strings_to_replace <- c("C:G")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "003002", x)
+                                }
+                              )
+                        )
+  } 
+  
+#A:T
+strings_to_replace <- c("A:T")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "001004", x)
+                                }
+                              )
+                        )
+  } 
+
+#A:C
+strings_to_replace <- c("A:C")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "001003", x)
+                                }
+                              )
+                        )
+  } 
+  
+#T:G
+strings_to_replace <- c("T:G")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "004002", x)
+                                }
+                              )
+                        )
+  } 
+
+#Check that you're not missing any weird allele combinations
+unique(input[,3:96])
+
+#Write to csv
+comma<- as.data.frame(input[1:96,1])
+comma[,1]<- ","
+colnames(comma)<- ""
+
+names<- as.data.frame(input[,2])
+
+#Drop SRY and ZFR from columns 97 and 98. 
+#We ended up individually removing these columns manually in excel before entering R. David's placa_02 had SRY and ZFR in columns ~30 and ~70. David's placa_01 didn't include SRY or ZFR, and instead included two other SNPs. Our portugal fluidigm run (06/2021) included SRY and ZFR in wells 95 and 96. In the future,the positions of SRY and ZFR, NTCs and C-EXT FORE should be fixed for all future runs.
+genotypes<- as.data.frame(input[,3:96]) 
+input<- cbind(names, comma, genotypes)
+write.table(input, file ="/Volumes/GoogleDrive/My Drive/project_iberian_lynx/project_iberian_lynx_fluidigm/data_project_iberian_lynx_fluidigm/iberian_lynx_fluidigm_2019/placa_01_fluidigm_2019/genepop_lince_placa01_david_raw.txt", row.names=F, col.names = T)
+```
+#Part 2: David's data Placa 02
+We had to run this a second time with David's data from 2019. Then, the two data sets were confirmed to identify coincident individuals (recaptures) versus new individuals.
+```{r}
+#Set working directory
+#dir1 <- file.path("/Volumes/GoogleDrive/My Drive/project_iberian_lynx/running_scripts_dani_david/")
+#setwd(dir1)
+
+#Load inputs
+input_output <- "output_fluidigm_callmap_david.csv"
+input <- read.csv("/Volumes/GoogleDrive/My Drive/project_iberian_lynx/project_iberian_lynx_fluidigm/data_project_iberian_lynx_fluidigm/iberian_lynx_fluidigm_2019/placa_02_fluidigm_2019/output_fluidigm_callmap_lince_david_formatted.csv") 
+
+#Save the raw input as inputraw for safekeeping
+inputraw<- input
+
+#Name the first two columns "sample_order" and "sample_id"
+colnames(input)[1]<- "sample_order"
+colnames(input)[2]<- "sample_id"
+
+#Import the SNP database to retrieve the SNP names from the scaffolds and positions
+SNP_database <- read.csv2("/Volumes/GoogleDrive/My Drive/project_iberian_lynx/project_iberian_lynx_fluidigm/data_project_iberian_lynx_fluidigm/snps_lista_suprema.csv")[,c(1,2,4)]
+SNP_database
+SNP_database$SCAFF_POSIT = paste(SNP_database$SCAFFOLD,SNP_database$POSITION,sep="_")
+
+#Retrieve SNP names when necessary, otherwise retaining the original name (i.e. for SRY and ZFR)
+input_SNP_names <- vector('character')
+for (i in colnames(input)) {
+  if (startsWith(i,"lp23.")==F) {
+    input_SNP_names <- c(input_SNP_names,i)
+  } else {
+    input_SNP_names <- c(input_SNP_names,unlist(SNP_database[which(SNP_database$SCAFF_POSIT==i),1],use.names=F))
+  }
+}
+
+#Check the names
+input_SNP_names
+#If OK, assign the names to our object
+colnames(input) <- input_SNP_names
+
+#Obtain a list of all strings in the dataframe that are equivalent to missing data (i.e. equivalent to "0:0")
+strings_to_replace <- grep(":",unique(unlist(input[,-c(1:2)])),value=T,invert=T)
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "000000", x)
+                                }
+                              )
+                        )
+  }
+  
+#A:A
+strings_to_replace <- c("A:A")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "001001", x)
+                                }
+                              )
+                        )
+  }
+#C:C
+strings_to_replace <- c("C:C")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "003003", x)
+                                }
+                              )
+                        )
+  }
+
+#G:G
+strings_to_replace <- c("G:G")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "002002", x)
+                                }
+                              )
+                        )
+  }
+
+#T:T
+strings_to_replace <- c("T:T")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "004004", x)
+                                }
+                              )
+                        )
+  }  
+
+#T:C
+strings_to_replace <- c("T:C")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "004003", x)
+                                }
+                              )
+                        )
+  } 
+
+#A:G
+strings_to_replace <- c("A:G")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "001002", x)
+                                }
+                              )
+                        )
+  } 
+
+#C:G
+strings_to_replace <- c("C:G")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "003002", x)
+                                }
+                              )
+                        )
+  } 
+  
+#A:T
+strings_to_replace <- c("A:T")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "001004", x)
+                                }
+                              )
+                        )
+  } 
+
+#A:C
+strings_to_replace <- c("A:C")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "001003", x)
+                                }
+                              )
+                        )
+  } 
+  
+#T:G
+strings_to_replace <- c("T:G")
+for (string in strings_to_replace) { 
+  input <- as.data.frame(lapply(input, function(x) { 
+                                gsub(string, "004002", x)
+                                }
+                              )
+                        )
+  } 
+
+#Check that you're not missing any weird allele combinations
+unique(input[,3:96])
+
+#Write to csv
+comma<- as.data.frame(input[1:96,1])
+comma[,1]<- ","
+colnames(comma)<- ""
+
+names<- as.data.frame(input[,2])
+
+#Drop SRY and ZFR from columns 97 and 98. 
+#We ended up individually removing these columns manually in excel before entering R. David's placa_02 had SRY and ZFR in columns ~30 and ~70. David's placa_01 didn't include SRY or ZFR, and instead included two other SNPs. Our portugal fluidigm run (06/2021) included SRY and ZFR in wells 95 and 96. In the future,the positions of SRY and ZFR, NTCs and C-EXT FORE should be fixed for all future runs.
+genotypes<- as.data.frame(input[,3:96]) 
+input<- cbind(names, comma, genotypes)
+write.table(input, file ="/Volumes/GoogleDrive/My Drive/project_iberian_lynx/project_iberian_lynx_fluidigm/data_project_iberian_lynx_fluidigm/iberian_lynx_fluidigm_2019/placa_02_fluidigm_2019/genepop_lince_david_raw.txt", row.names=F, col.names = T)
+```
+
